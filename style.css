@@ -10,4 +10,5 @@ body { font-family: Arial; padding: 20px; background: #f9fafb; }
   .input-container { display: flex; gap: 10px; }
   table { width: 100%; border-collapse: collapse; margin-top: 20px; }
   th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+  td{font-weight: 500}
   th { background: #2d6cdf; color: #fff; }
