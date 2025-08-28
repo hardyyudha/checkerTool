@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Page Scraper & Duplicate Checker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+  <h1>Page Scraper</h1>
+  <div class="input-container">
+  <input type="text" id="scrapeUrlInput" placeholder="Enter base URL">
+  <button onclick="scrapePagesHandler()">Scrape Pages</button>
+  </div>
+  <div id="scrapeResults" class="result"></div>
+</div>
+
+<div class="container">
+  <h1>Typo Checker</h1>
+  <div class="input-container">
+  <input type="text" id="typoCheckerInput" placeholder="Enter page URL to check for typos">
+  <button onclick="checkTyposFull()">Check Typo</button>
+  </div>
+  <div id="typoResults" class="result"></div>
+</div>
+
+<div class="container">
+  <h1>Duplicate Checker</h1>
+  <div class="input-container">
+    <input type="text" id="duplicateUrlInput" placeholder="Enter page URL to check duplicates">
+    <button onclick="duplicateCheckHandler()">Check Duplicates</button>
+  </div>
+  <div id="duplicateResults" class="result"></div>
+</div>
+
+<script src="main.js"></script>
+</body>
+</html>
