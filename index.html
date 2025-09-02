@@ -20,8 +20,8 @@
 <div class="container">
   <h1>Typo Checker</h1>
   <div class="input-container">
-  <input type="text" id="typoCheckerInput" placeholder="Enter page URL to check for typos">
-  <button onclick="checkTyposFull()">Check Typo</button>
+  <textarea id="typoCheckerInput" placeholder="Enter page URLs to check for typos (one URL per line)"></textarea>
+  <button onclick="checkTyposFull()">Check Typos</button>
   </div>
   <div id="typoResults" class="result"></div>
 </div>
@@ -29,7 +29,7 @@
 <div class="container">
   <h1>Duplicate Checker</h1>
   <div class="input-container">
-    <input type="text" id="duplicateUrlInput" placeholder="Enter page URL to check duplicates">
+    <textarea id="duplicateUrlInput" placeholder="Enter page URLs to check for duplicates (one URL per line)"></textarea>
     <button onclick="duplicateCheckHandler()">Check Duplicates</button>
   </div>
   <div id="duplicateResults" class="result"></div>

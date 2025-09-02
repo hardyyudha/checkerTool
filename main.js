@@ -111,29 +111,103 @@ function detectDuplicates(elements) {
 }
 
 async function duplicateCheckHandler() {
-  const url = document.getElementById("duplicateUrlInput").value.trim();
+  const urlsText = document.getElementById("duplicateUrlInput").value.trim();
   const resultsDiv = document.getElementById("duplicateResults");
   resultsDiv.innerHTML = "🔍 Checking duplicates...";
-  if (!url) { resultsDiv.textContent = "⚠️ Please enter a page URL."; return; }
+  
+  if (!urlsText) { 
+    resultsDiv.textContent = "⚠️ Please enter page URLs."; 
+    return; 
+  }
 
-  try {
-    const elements = await scrapeElements(url);
-    if (!elements.length) { resultsDiv.textContent = "⛔ No content found."; return; }
+  // Parse URLs from textarea (one per line)
+  const urls = urlsText.split('\n').map(url => url.trim()).filter(url => url.length > 0);
+  
+  if (urls.length === 0) {
+    resultsDiv.textContent = "⚠️ No valid URLs found.";
+    return;
+  }
 
-    const duplicates = detectDuplicates(elements);
-    if (!duplicates.length) resultsDiv.textContent = "✅ No duplicates found.";
-    else {
-      resultsDiv.innerHTML = "<h3 class='section-header'>Duplicates Found:</h3>";
-      duplicates.forEach(d => {
-        const div = document.createElement("div");
-        div.className = "duplicate";
-        div.innerHTML = `<strong>${d.tag.toUpperCase()}</strong>: ${d.text}<br>
-                         <small>Positions: ${d.positions.join(", ")}</small>`;
-        resultsDiv.appendChild(div);
-      });
+  resultsDiv.innerHTML = `<h3 class='section-header'>Checking ${urls.length} URL(s) for duplicates...</h3>`;
+  
+  for (let i = 0; i < urls.length; i++) {
+    const url = urls[i];
+    
+    // Update progress
+    const progressDiv = document.createElement("div");
+    progressDiv.style.textAlign = "center";
+    progressDiv.style.padding = "10px";
+    progressDiv.style.background = "#e8f5e8";
+    progressDiv.style.borderRadius = "8px";
+    progressDiv.style.margin = "10px 0";
+    progressDiv.innerHTML = `🔄 Processing URL ${i + 1} of ${urls.length}: ${url}`;
+    resultsDiv.appendChild(progressDiv);
+    
+    try {
+      // Add URL header
+      const urlHeader = document.createElement("div");
+      urlHeader.className = "url-header";
+      urlHeader.textContent = `URL ${i + 1}: ${url}`;
+      resultsDiv.appendChild(urlHeader);
+      
+      const urlResultsDiv = document.createElement("div");
+      urlResultsDiv.className = "url-results";
+      resultsDiv.appendChild(urlResultsDiv);
+      
+      urlResultsDiv.innerHTML = "🔍 Checking...";
+      
+      const elements = await scrapeElements(url);
+      if (!elements.length) { 
+        urlResultsDiv.innerHTML = "⛔ No content found."; 
+        continue; 
+      }
+
+      const duplicates = detectDuplicates(elements);
+      if (!duplicates.length) {
+        urlResultsDiv.innerHTML = "✅ No duplicates found.";
+      } else {
+        urlResultsDiv.innerHTML = "<h4>Duplicates Found:</h4>";
+        duplicates.forEach(d => {
+          const div = document.createElement("div");
+          div.className = "duplicate";
+          div.innerHTML = `<strong>${d.tag.toUpperCase()}</strong>: ${d.text}<br>
+                           <small>Positions: ${d.positions.join(", ")}</small>`;
+          urlResultsDiv.appendChild(div);
+        });
+      }
+      
+      // Remove progress indicator
+      resultsDiv.removeChild(progressDiv);
+      
+      // Add separator between URLs
+      if (i < urls.length - 1) {
+        const separator = document.createElement("hr");
+        separator.style.margin = "20px 0";
+        separator.style.border = "1px solid #eee";
+        resultsDiv.appendChild(separator);
+      }
+      
+    } catch(err) {
+      // Remove progress indicator
+      resultsDiv.removeChild(progressDiv);
+      
+      const urlHeader = document.createElement("div");
+      urlHeader.className = "url-header";
+      urlHeader.textContent = `URL ${i + 1}: ${url}`;
+      resultsDiv.appendChild(urlHeader);
+      
+      const urlResultsDiv = document.createElement("div");
+      urlResultsDiv.className = "url-results";
+      urlResultsDiv.innerHTML = `⚠️ Error: ${err.message}`;
+      resultsDiv.appendChild(urlResultsDiv);
+      
+      if (i < urls.length - 1) {
+        const separator = document.createElement("hr");
+        separator.style.margin = "20px 0";
+        separator.style.border = "1px solid #eee";
+        resultsDiv.appendChild(separator);
+      }
     }
-  } catch(err) {
-    resultsDiv.textContent = "⚠️ Error: " + err.message;
   }
 }
 
@@ -176,41 +250,112 @@ async function checkChunk(text, language="en-US") {
 
 // Main function
 async function checkTyposFull() {
-  const url = document.getElementById("typoCheckerInput").value.trim();
+  const urlsText = document.getElementById("typoCheckerInput").value.trim();
   const resultsDiv = document.getElementById("typoResults");
   resultsDiv.innerHTML = "🔍 Checking typos...";
-  if (!url) { resultsDiv.textContent = "⚠️ Please enter a URL."; return; }
+  
+  if (!urlsText) { 
+    resultsDiv.textContent = "⚠️ Please enter URLs."; 
+    return; 
+  }
 
-  try {
-    const html = await fetchWithCors(url);
-    const text = extractText(html);
-    if (!text) { resultsDiv.textContent = "⛔ No text found on page."; return; }
+  // Parse URLs from textarea (one per line)
+  const urls = urlsText.split('\n').map(url => url.trim()).filter(url => url.length > 0);
+  
+  if (urls.length === 0) {
+    resultsDiv.textContent = "⚠️ No valid URLs found.";
+    return;
+  }
 
-    const chunks = splitChunks(text);
-    let allTypos = [];
+  resultsDiv.innerHTML = `<h3 class='section-header'>Checking ${urls.length} URL(s) for typos...</h3>`;
+  
+  for (let i = 0; i < urls.length; i++) {
+    const url = urls[i];
+    
+    // Update progress
+    const progressDiv = document.createElement("div");
+    progressDiv.style.textAlign = "center";
+    progressDiv.style.padding = "10px";
+    progressDiv.style.background = "#e8f5e8";
+    progressDiv.style.borderRadius = "8px";
+    progressDiv.style.margin = "10px 0";
+    progressDiv.innerHTML = `🔄 Processing URL ${i + 1} of ${urls.length}: ${url}`;
+    resultsDiv.appendChild(progressDiv);
+    
+    try {
+      // Add URL header
+      const urlHeader = document.createElement("div");
+      urlHeader.className = "url-header";
+      urlHeader.textContent = `URL ${i + 1}: ${url}`;
+      resultsDiv.appendChild(urlHeader);
+      
+      const urlResultsDiv = document.createElement("div");
+      urlResultsDiv.className = "url-results";
+      resultsDiv.appendChild(urlResultsDiv);
+      
+      urlResultsDiv.innerHTML = "🔍 Checking...";
+      
+      const html = await fetchWithCors(url);
+      const text = extractText(html);
+      if (!text) { 
+        urlResultsDiv.innerHTML = "⛔ No text found on page."; 
+        continue; 
+      }
 
-    for (let i = 0; i < chunks.length; i++) {
-      const data = await checkChunk(chunks[i]);
-      allTypos = allTypos.concat(data.matches);
+      const chunks = splitChunks(text);
+      let allTypos = [];
+
+      for (let j = 0; j < chunks.length; j++) {
+        const data = await checkChunk(chunks[j]);
+        allTypos = allTypos.concat(data.matches);
+      }
+
+      if (!allTypos.length) {
+        urlResultsDiv.innerHTML = "✅ No typos found.";
+      } else {
+        urlResultsDiv.innerHTML = "<h4>⚠️ Possible Typos / Suggestions:</h4>";
+        // Create table
+        let tableHTML = "<table><tr><th>Word</th><th>Suggestion</th></tr>";
+        allTypos.forEach(m => {
+          const word = m.context.text.substr(m.context.offset, m.context.length);
+          const suggestions = m.replacements.map(r => r.value).join(", ");
+          tableHTML += `<tr><td>${word}</td><td>${suggestions}</td></tr>`;
+        });
+        tableHTML += "</table>";
+        urlResultsDiv.innerHTML = tableHTML;
+      }
+      
+      // Remove progress indicator
+      resultsDiv.removeChild(progressDiv);
+      
+      // Add separator between URLs
+      if (i < urls.length - 1) {
+        const separator = document.createElement("hr");
+        separator.style.margin = "20px 0";
+        separator.style.border = "1px solid #eee";
+        resultsDiv.appendChild(separator);
+      }
+      
+    } catch(err) {
+      // Remove progress indicator
+      resultsDiv.removeChild(progressDiv);
+      
+      const urlHeader = document.createElement("div");
+      urlHeader.className = "url-header";
+      urlHeader.textContent = `URL ${i + 1}: ${url}`;
+      resultsDiv.appendChild(urlHeader);
+      
+      const urlResultsDiv = document.createElement("div");
+      urlResultsDiv.className = "url-results";
+      urlResultsDiv.innerHTML = `⚠️ Error: ${err.message}`;
+      resultsDiv.appendChild(urlResultsDiv);
+      
+      if (i < urls.length - 1) {
+        const separator = document.createElement("hr");
+        separator.style.margin = "20px 0";
+        separator.style.border = "1px solid #eee";
+        resultsDiv.appendChild(separator);
+      }
     }
-
-    if (!allTypos.length) {
-      resultsDiv.textContent = "✅ No typos found.";
-      return;
-    }
-
-    resultsDiv.innerHTML = "<h3>⚠️ Possible Typos / Suggestions:</h3>";
-    // Create table
-    let tableHTML = "<table><tr><th>Word</th><th>Suggestion</th></tr>";
-    allTypos.forEach(m => {
-      const word = m.context.text.substr(m.context.offset, m.context.length);
-      const suggestions = m.replacements.map(r => r.value).join(", ");
-      tableHTML += `<tr><td>${word}</td><td>${suggestions}</td></tr>`;
-    });
-    tableHTML += "</table>";
-    resultsDiv.innerHTML = tableHTML;
-
-  } catch(err) {
-    resultsDiv.textContent = "⚠️ Error: " + err.message;
   }
 }
